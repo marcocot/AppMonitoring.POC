@@ -35,5 +35,17 @@ namespace AppMonitoring.POC.Controllers
             })
             .ToArray();
         }
+
+        [HttpGet("{city:alpha}")]
+        public WeatherForecast GetByCity(string city)
+        {
+            this._logger.LogInformation("Weather requested for: {City}", city);
+            return new WeatherForecast
+            {
+                Date = DateTime.Now,
+                TemperatureC = 40,
+                Summary = Summaries[0]
+            };
+        }
     }
 }
