@@ -76,3 +76,70 @@ public class MyController(ILogger<MyController> logger) {
   logger.LogError("Everything is on fire");
 }
 ```
+
+## AppMetrics
+
+To add `AppMetrics` to the solution:
+
+1. Add the following packages to the project:
+  - `App.Metrics.AspNetCore.All`
+  - `App.Metrics.Prometheus` (or any other reporting library)
+2. Configure the library via `appsettings.json`:
+```json
+{
+ "MetricsOptions": {
+    "DefaultContextLabel": "MyMvcApplication",
+    "Enabled": true
+  },
+  "MetricEndpointsOptions": {
+    "MetricsEndpointEnabled": true,
+    "MetricsTextEndpointEnabled": true,
+    "EnvironmentInfoEndpointEnabled": true
+   }
+}
+```
+3. Enable the library:
+```c#
+// Startup.cs
+
+...
+services.AddMvcCore(options => options.EnableEndpointRouting = false).AddMetricsCore();
+...
+app.UseMvc(); 
+```
+4. Create a `MetricsRegistry` to centralise the definition of the metrics to be tracked:
+```c#
+//MetricsRegistry.cs
+using App.Metrics.ReservoirSampling.Uniform;
+using App.Metrics.Timer;
+
+namespace AppMonitoring.POC
+{
+    public static class MetricsRegistry
+    {
+        private const string Context = "Weather";
+
+        public static readonly TimerOptions TimerWeatherForecastGeneration = new TimerOptions
+        {
+            Context = Context,
+            Name = "weather-forecast-generation",
+            Reservoir = () => new DefaultAlgorithmRReservoir(),
+        };
+    }
+}
+```
+
+5. At this point all you have to do is pass an instance of `IMetrics` to your class and consume the metrics you are interested in:
+
+```c#
+public class MyController 
+{
+     public void GetByCountryCity([FromService]IMetrics metrics)
+     {
+         using (metrics.Measure.Timer.Time(MetricsRegistry.TimerWeatherForecastGeneration))
+         {
+             await MyVeryLongMethod();
+         }
+     }    
+}
+```

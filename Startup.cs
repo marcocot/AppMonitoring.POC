@@ -29,6 +29,7 @@ namespace AppMonitoring.POC
         {
 
             services.AddControllers();
+            services.AddMvcCore(options => options.EnableEndpointRouting = false).AddMetricsCore(); 
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "AppMonitoring.POC", Version = "v1" });
@@ -50,6 +51,7 @@ namespace AppMonitoring.POC
             app.UseRouting();
 
             app.UseAuthorization();
+            app.UseMvc();
             app.UseSerilogRequestLogging();
 
             app.UseEndpoints(endpoints =>

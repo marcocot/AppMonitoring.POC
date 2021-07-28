@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using App.Metrics;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
@@ -17,10 +18,12 @@ namespace AppMonitoring.POC.Controllers
         };
 
         private readonly ILogger<WeatherForecastController> _logger;
+        private readonly IMetrics _metrics;
 
-        public WeatherForecastController(ILogger<WeatherForecastController> logger)
+        public WeatherForecastController(ILogger<WeatherForecastController> logger, IMetrics metrics)
         {
             _logger = logger;
+            _metrics = metrics;
         }
 
         [HttpGet]
@@ -46,6 +49,28 @@ namespace AppMonitoring.POC.Controllers
                 TemperatureC = 40,
                 Summary = Summaries[0]
             };
+        }
+
+        [HttpGet("{country}/{city}")]
+        public async Task<WeatherForecast> GetByCountryCity(string country, string city)
+        {
+            using (_metrics.Measure.Timer.Time(MetricsRegistry.TimerWeatherForecastGeneration))
+            {
+                await Task.Delay(TimeSpan.FromSeconds(2), HttpContext.RequestAborted);
+            }
+
+            return new WeatherForecast
+            {
+                Date = DateTime.Now,
+                Summary = Summaries[0],
+                TemperatureC = 45
+            };
+        }
+
+        [HttpGet("crash")]
+        public void CrashIt()
+        {
+            throw new ApplicationException("Nothing is working");
         }
     }
 }
