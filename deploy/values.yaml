@@ -5,10 +5,10 @@
 replicaCount: 1
 
 image:
-  repository: nginx
+  repository: ghcr.io/marcocot/appmonitoring.poc
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
-  tag: ""
+  tag: "master"
 
 imagePullSecrets: []
 nameOverride: ""
@@ -41,13 +41,12 @@ service:
   port: 80
 
 ingress:
-  enabled: false
+  enabled: true
   className: ""
-  annotations: {}
-    # kubernetes.io/ingress.class: nginx
-    # kubernetes.io/tls-acme: "true"
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: "/"
   hosts:
-    - host: chart-example.local
+    - host: appmonitoring-poc.kub1-ingress.ors.it
       paths:
         - path: /
           pathType: ImplementationSpecific
